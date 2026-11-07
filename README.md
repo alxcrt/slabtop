@@ -22,7 +22,7 @@ You need a working way to reach your logged-in Mac desktop for the first setup.
 6. Turn on **Use automatically**.
 7. Turn on **Open at login**.
 
-The app stays in the menu bar when you close its window. It checks display changes and wake events while it runs. It preserves your selected resolution, refresh rate, and HDR setting.
+The app stays in the menu bar when you close its window. It checks display changes and wake events while it runs. It preserves your selected resolution, refresh rate, and relative screen positions. Picture controls, including HDR, remain in macOS Display settings.
 
 The download is ad hoc signed and is **not Apple-notarized**. If macOS blocks the first launch, follow Apple's per-app **Open Anyway** procedure in the [user guide](docs/USER-GUIDE.md#open-the-download). No Terminal commands are needed for normal use.
 
