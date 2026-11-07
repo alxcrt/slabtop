@@ -1,0 +1,25 @@
+name: Build and test
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test display safety
+        run: swift test
+      - name: Build and verify the app
+        run: scripts/build-app.sh
+      - name: Upload app archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: HalfBook-arm64
+          path: |
+            dist/HalfBook-*-arm64.zip
+            dist/HalfBook-*-arm64.dmg
+            dist/SHA256SUMS.txt
