@@ -23,143 +23,169 @@ func gradient(_ path: NSBezierPath, _ top: UInt32, _ bottom: UInt32) {
     NSGradient(starting: color(bottom), ending: color(top))!.draw(in: path, angle: 90)
 }
 
-func polygon(_ points: [NSPoint]) -> NSBezierPath {
-    let path = NSBezierPath()
-    path.move(to: points[0])
-    for point in points.dropFirst() { path.line(to: point) }
-    path.close()
-    return path
-}
-
 func png(pixels: Int) -> Data {
     let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: pixels, pixelsHigh: pixels, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
     let context = NSGraphicsContext.current!.cgContext
     context.scaleBy(x: CGFloat(pixels) / 1024, y: CGFloat(pixels) / 1024)
+    context.setShouldAntialias(true)
 
     let tile = rounded(NSRect(x: 64, y: 64, width: 896, height: 896), 202)
     NSGraphicsContext.saveGraphicsState()
     let tileShadow = NSShadow()
-    tileShadow.shadowColor = color(0x573F18, alpha: 0.18)
+    tileShadow.shadowColor = color(0x092C72, alpha: 0.25)
     tileShadow.shadowBlurRadius = 24
     tileShadow.shadowOffset = NSSize(width: 0, height: -12)
     tileShadow.set()
-    color(0xEBC66B).setFill()
+    color(0x1663D4).setFill()
     tile.fill()
-    gradient(tile, 0xFBE9B4, 0xEBC66B)
     NSGraphicsContext.restoreGraphicsState()
-    color(0xFFFFFF, alpha: 0.45).setStroke()
-    tile.lineWidth = 3
+    gradient(tile, 0x16BFE0, 0x244BC8)
+
+    color(0xFFFFFF, alpha: 0.3).setStroke()
+    tile.lineWidth = 2
     tile.stroke()
 
-    let cable = NSBezierPath()
-    cable.move(to: NSPoint(x: 323, y: 501))
-    cable.curve(to: NSPoint(x: 211, y: 441), controlPoint1: NSPoint(x: 218, y: 501), controlPoint2: NSPoint(x: 211, y: 500))
-    cable.curve(to: NSPoint(x: 286, y: 358), controlPoint1: NSPoint(x: 211, y: 393), controlPoint2: NSPoint(x: 230, y: 358))
-    cable.lineWidth = 25
-    cable.lineCapStyle = .round
-    color(0x9A793A, alpha: 0.30).setStroke()
-    cable.stroke()
-    let cableHighlight = AffineTransform(translationByX: 0, byY: 5)
-    cable.transform(using: cableHighlight)
-    color(0xFFF6D9).setStroke()
-    cable.lineWidth = 17
-    cable.stroke()
+    let frontLeft = NSPoint(x: 318, y: 245)
+    let frontRight = NSPoint(x: 871, y: 416)
+    let backLeft = NSPoint(x: 184, y: 654)
+    let backRight = NSPoint(x: 683, y: 810)
 
-    let stand = rounded(NSRect(x: 543, y: 381, width: 64, height: 143), 15)
-    gradient(stand, 0xD9DADD, 0xA8ACB2)
-    let foot = rounded(NSRect(x: 488, y: 375, width: 174, height: 28), 14)
-    gradient(foot, 0xF6F7F6, 0xCDD0D2)
-
-    let display = rounded(NSRect(x: 307, y: 460, width: 542, height: 351), 42)
-    NSGraphicsContext.saveGraphicsState()
-    let displayShadow = NSShadow()
-    displayShadow.shadowColor = color(0x755521, alpha: 0.26)
-    displayShadow.shadowBlurRadius = 23
-    displayShadow.shadowOffset = NSSize(width: 0, height: -16)
-    displayShadow.set()
-    color(0xD3D6D7).setFill()
-    display.fill()
-    gradient(display, 0xFCFDF9, 0xD3D6D7)
-    NSGraphicsContext.restoreGraphicsState()
-    color(0xFFFFFF, alpha: 0.8).setStroke()
-    display.lineWidth = 3
-    display.stroke()
-
-    let screen = rounded(NSRect(x: 328, y: 497, width: 500, height: 293), 26)
-    gradient(screen, 0x41474A, 0x242A2D)
-    NSGraphicsContext.saveGraphicsState()
-    screen.addClip()
-    let glow = NSBezierPath(ovalIn: NSRect(x: 430, y: 420, width: 310, height: 310))
-    gradient(glow, 0xFBE8A2, 0xE6AC45)
-    let horizon = NSBezierPath()
-    horizon.move(to: NSPoint(x: 328, y: 560))
-    horizon.line(to: NSPoint(x: 828, y: 560))
-    color(0x333A3D).setStroke()
-    horizon.lineWidth = 24
-    horizon.stroke()
-    color(0x2A3134).setFill()
-    NSRect(x: 328, y: 497, width: 500, height: 51).fill()
-    NSGraphicsContext.restoreGraphicsState()
-
-    let rearLip = rounded(NSRect(x: 247, y: 387, width: 419, height: 35), 12)
-    gradient(rearLip, 0x7F878C, 0x4A5358)
-    for x in [269, 610] {
-        gradient(rounded(NSRect(x: x, y: 406, width: 34, height: 22), 8), 0xF7F7F2, 0xC0C4C7)
+    func point(_ x: CGFloat, _ y: CGFloat, drop: CGFloat = 0) -> NSPoint {
+        let u = x / 760
+        let v = y / 550
+        let left = NSPoint(x: frontLeft.x + (backLeft.x - frontLeft.x) * v, y: frontLeft.y + (backLeft.y - frontLeft.y) * v)
+        let right = NSPoint(x: frontRight.x + (backRight.x - frontRight.x) * v, y: frontRight.y + (backRight.y - frontRight.y) * v)
+        return NSPoint(x: left.x + (right.x - left.x) * u, y: left.y + (right.y - left.y) * u - drop)
     }
 
-    let base = polygon([
-        NSPoint(x: 247, y: 396), NSPoint(x: 665, y: 396),
-        NSPoint(x: 764, y: 235), NSPoint(x: 752, y: 210),
-        NSPoint(x: 170, y: 210), NSPoint(x: 158, y: 235)
-    ])
-    NSGraphicsContext.saveGraphicsState()
-    let baseShadow = NSShadow()
-    baseShadow.shadowColor = color(0x77551D, alpha: 0.28)
-    baseShadow.shadowBlurRadius = 25
-    baseShadow.shadowOffset = NSSize(width: 0, height: -17)
-    baseShadow.set()
-    color(0xB6BDC2).setFill()
-    base.fill()
-    gradient(base, 0xF7F8F5, 0xB6BDC2)
-    NSGraphicsContext.restoreGraphicsState()
+    func surface(_ rect: NSRect, radius: CGFloat, drop: CGFloat = 0) -> NSBezierPath {
+        let p = NSBezierPath()
+        let r = min(radius, min(rect.width, rect.height) / 2)
+        let c = r * 0.55228475
+        let x = rect.minX
+        let y = rect.minY
+        let w = rect.width
+        let h = rect.height
+        p.move(to: point(x + r, y, drop: drop))
+        p.line(to: point(x + w - r, y, drop: drop))
+        p.curve(to: point(x + w, y + r, drop: drop), controlPoint1: point(x + w - r + c, y, drop: drop), controlPoint2: point(x + w, y + r - c, drop: drop))
+        p.line(to: point(x + w, y + h - r, drop: drop))
+        p.curve(to: point(x + w - r, y + h, drop: drop), controlPoint1: point(x + w, y + h - r + c, drop: drop), controlPoint2: point(x + w - r + c, y + h, drop: drop))
+        p.line(to: point(x + r, y + h, drop: drop))
+        p.curve(to: point(x, y + h - r, drop: drop), controlPoint1: point(x + r - c, y + h, drop: drop), controlPoint2: point(x, y + h - r + c, drop: drop))
+        p.line(to: point(x, y + r, drop: drop))
+        p.curve(to: point(x + r, y, drop: drop), controlPoint1: point(x, y + r - c, drop: drop), controlPoint2: point(x + r - c, y, drop: drop))
+        p.close()
+        return p
+    }
 
-    let deck = polygon([
-        NSPoint(x: 247, y: 398), NSPoint(x: 665, y: 398),
-        NSPoint(x: 764, y: 237), NSPoint(x: 158, y: 237)
-    ])
-    gradient(deck, 0xF5F6F2, 0xD9DEE0)
-    color(0xFFFFFF, alpha: 0.9).setStroke()
-    deck.lineWidth = 3
-    deck.lineJoinStyle = .round
+    let bodyRect = NSRect(x: 0, y: 0, width: 760, height: 550)
+    let bottom = surface(bodyRect, radius: 32, drop: 27)
+    NSGraphicsContext.saveGraphicsState()
+    let shadow = NSShadow()
+    shadow.shadowColor = color(0x092B77, alpha: 0.65)
+    shadow.shadowBlurRadius = 40
+    shadow.shadowOffset = NSSize(width: 1, height: -26)
+    shadow.set()
+    color(0x637787).setFill()
+    bottom.fill()
+    NSGraphicsContext.restoreGraphicsState()
+    gradient(bottom, 0xAAB9C5, 0x667D91)
+
+    let bevel = surface(bodyRect, radius: 32, drop: 11)
+    gradient(bevel, 0xD8E1E9, 0x94A7B7)
+    let deck = surface(bodyRect, radius: 32)
+    gradient(deck, 0xF1F6FA, 0xB8CDD9)
+    color(0xFFFFFF, alpha: 0.85).setStroke()
+    deck.lineWidth = 2.5
     deck.stroke()
 
-    let keyboard = polygon([
-        NSPoint(x: 271, y: 374), NSPoint(x: 640, y: 374),
-        NSPoint(x: 678, y: 310), NSPoint(x: 235, y: 310)
-    ])
-    gradient(keyboard, 0x515A60, 0x353F45)
-    for y in [330, 352] {
-        let row = NSBezierPath()
-        row.move(to: NSPoint(x: y == 352 ? 271 : 258, y: y))
-        row.line(to: NSPoint(x: y == 352 ? 643 : 656, y: y))
-        color(0x849097, alpha: 0.8).setStroke()
-        row.lineWidth = 5
-        row.stroke()
+    NSGraphicsContext.saveGraphicsState()
+    deck.addClip()
+    let sheen = NSBezierPath()
+    sheen.move(to: point(0, 550))
+    sheen.line(to: point(760, 550))
+    sheen.line(to: point(760, 330))
+    sheen.line(to: point(0, 110))
+    sheen.close()
+    NSGradient(starting: color(0xFFFFFF, alpha: 0), ending: color(0xFFFFFF, alpha: 0.3))!.draw(in: sheen, angle: 110)
+    NSGraphicsContext.restoreGraphicsState()
+
+    let hinge = surface(NSRect(x: 58, y: 516, width: 644, height: 14), radius: 6)
+    gradient(hinge, 0x708696, 0x374E61)
+    for x: CGFloat in [40, 698] {
+        let cap = surface(NSRect(x: x, y: 510, width: 22, height: 24), radius: 7)
+        gradient(cap, 0xFFFFFF, 0xB1C2CE)
     }
-    let trackpad = polygon([
-        NSPoint(x: 391, y: 292), NSPoint(x: 524, y: 292),
-        NSPoint(x: 539, y: 252), NSPoint(x: 375, y: 252)
-    ])
-    color(0xBFC6C9).setFill()
-    trackpad.fill()
-    color(0xFFFFFF, alpha: 0.7).setStroke()
+
+    let keyboard = surface(NSRect(x: 74, y: 242, width: 612, height: 245), radius: 17)
+    color(0x708696).setFill()
+    keyboard.fill()
+    let keyboardInset = surface(NSRect(x: 77, y: 245, width: 606, height: 239), radius: 14)
+    gradient(keyboardInset, 0x203C50, 0x0C263D)
+    color(0xFFFFFF, alpha: 0.45).setStroke()
+    keyboard.lineWidth = 1.8
+    keyboard.stroke()
+
+    let rows: [[CGFloat]] = [
+        [1.35, 1.1, 1.1, 1.1, 5.5, 1.1, 1.1, 1.1, 1.35],
+        [1.7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.0],
+        [1.45, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.25],
+        [1.05, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.65],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.7],
+        [1.45, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.25]
+    ]
+    for (row, widths) in rows.enumerated() {
+        let y = CGFloat(254 + row * 37)
+        let height: CGFloat = row == 5 ? 28 : 30
+        let gap: CGFloat = 6
+        let unit = (586 - CGFloat(widths.count - 1) * gap) / widths.reduce(0, +)
+        var x: CGFloat = 87
+        for width in widths {
+            let keyWidth = width * unit
+            let key = surface(NSRect(x: x, y: y, width: keyWidth, height: height), radius: 5)
+            gradient(key, row == 5 ? 0x38576B : 0x34536A, 0x17354C)
+            let edge = NSBezierPath()
+            edge.move(to: point(x + 5, y + height - 2))
+            edge.line(to: point(x + keyWidth - 5, y + height - 2))
+            color(0x86A4B7, alpha: 0.45).setStroke()
+            edge.lineWidth = 1.4
+            edge.stroke()
+            x += keyWidth + gap
+        }
+    }
+
+    for x: CGFloat in [38, 708] {
+        for row in 0..<28 {
+            let grille = surface(NSRect(x: x, y: CGFloat(255 + row * 8), width: 14, height: 2.4), radius: 1.2)
+            color(0x728F9F, alpha: 0.55).setFill()
+            grille.fill()
+        }
+    }
+
+    let trackpad = surface(NSRect(x: 235, y: 44, width: 290, height: 167), radius: 15)
+    gradient(trackpad, 0xBCD0DC, 0xC8D9E3)
+    color(0x7695A8, alpha: 0.9).setStroke()
     trackpad.lineWidth = 2
     trackpad.stroke()
-    let notch = rounded(NSRect(x: 410, y: 223, width: 94, height: 8), 4)
-    color(0x88949B).setFill()
+    let trackpadHighlight = surface(NSRect(x: 238, y: 47, width: 284, height: 161), radius: 13)
+    color(0xFFFFFF, alpha: 0.36).setStroke()
+    trackpadHighlight.lineWidth = 1.3
+    trackpadHighlight.stroke()
+
+    let notch = surface(NSRect(x: 324, y: -1, width: 112, height: 6), radius: 3, drop: 5)
+    color(0x55768D, alpha: 0.65).setFill()
     notch.fill()
+    let frontHighlight = NSBezierPath()
+    frontHighlight.move(to: point(34, 0, drop: 5))
+    frontHighlight.line(to: point(309, 0, drop: 5))
+    frontHighlight.move(to: point(451, 0, drop: 5))
+    frontHighlight.line(to: point(726, 0, drop: 5))
+    color(0xFFFFFF, alpha: 0.6).setStroke()
+    frontHighlight.lineWidth = 1.5
+    frontHighlight.stroke()
 
     NSGraphicsContext.restoreGraphicsState()
     return bitmap.representation(using: .png, properties: [:])!

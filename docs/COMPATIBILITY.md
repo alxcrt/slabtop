@@ -1,10 +1,10 @@
 # Compatibility and test status
 
-HalfBook targets Apple Silicon MacBooks with wired external monitors and TVs. It is an early release with limited hardware evidence. Support for a Mac's display connector does not establish that every configuration works with this app.
+Slabtop targets Apple Silicon MacBooks with wired external monitors and TVs. It is an early release with limited hardware evidence. Support for a Mac's display connector does not establish that every configuration works with this app.
 
 ## macOS support
 
-HalfBook runs on macOS 14 or later on Apple Silicon. M1 and later chips are eligible, including MacBook Air, MacBook Pro, and desktop Macs. Desktop Macs usually have no internal display to disconnect.
+Slabtop runs on macOS 14 or later on Apple Silicon. M1 and later chips are eligible, including MacBook Air, MacBook Pro, and desktop Macs. Desktop Macs usually have no internal display to disconnect.
 
 There is no chip-model or macOS-version allowlist. The app checks for the native display functions it needs and verifies the external desktop before disconnecting an internal output. If a required function is missing, the app stays read-only. The app does not block future macOS releases by version number. Function detection alone does not establish compatibility because Apple can change these private functions. Compatibility tests below distinguish observed behavior from intended support.
 
@@ -23,15 +23,15 @@ A wired display must match a physical display identity reported by the Apple Sil
 
 ## Recorded evidence
 
-Evidence current on 7 November 2026. Pending means there is no completed result recorded here.
+Hardware evidence was recorded on 7 November 2026 under the previous name, HalfBook 0.1.0. Slabtop 0.1.1 changes the name and artwork; the display engine is unchanged. Pending means there is no completed result recorded here.
 
 | Check | Result |
 | --- | --- |
-| LG C2 stuck at the macOS TV chooser, M2 MacBook Air, macOS 27.2 | A direct native API experiment activated the TV. BetterDisplay then disconnected the built-in display. macOS reported an unmirrored 3840 × 2160 desktop at 60 Hz, and the owner confirmed the picture. This was not a full HalfBook app test. |
-| Packaged HalfBook manual apply and software restore on M2 Max MacBook Pro, macOS 27.2, with one wired display | Verified locally. The external desktop remained at 3440 × 1440 and 100 Hz through apply and restore. |
-| Packaged HalfBook with two wired external displays on M2 Max, macOS 27.2 | Verified. Portrait 1440 × 2560 and ultrawide 3440 × 1440 stayed active at 60 Hz. Exact display modes and relative positions were preserved. Built-in output was off. The app recovery button restored built-in output; the original arrangement was restored and checked. |
+| LG C2 stuck at the macOS TV chooser, M2 MacBook Air, macOS 27.2 | A direct native API experiment activated the TV. BetterDisplay then disconnected the built-in display. macOS reported an unmirrored 3840 × 2160 desktop at 60 Hz, and the owner confirmed the picture. This was not a full Slabtop app test. |
+| Packaged Slabtop manual apply and software restore on M2 Max MacBook Pro, macOS 27.2, with one wired display | Verified locally. The external desktop remained at 3440 × 1440 and 100 Hz through apply and restore. |
+| Packaged Slabtop with two wired external displays on M2 Max, macOS 27.2 | Verified. Portrait 1440 × 2560 and ultrawide 3440 × 1440 stayed active at 60 Hz. Exact display modes and relative positions were preserved. Built-in output was off. The app recovery button restored built-in output; the original arrangement was restored and checked. |
 | Policy, display engine, and layout unit tests | 47 tests passed with `swift test`. These tests use simulated display state. |
-| Packaged HalfBook automatic mode on M2 MacBook Air with LG C2, macOS 27.2 | Verified without BetterDisplay automatic connection rules. C2 was the only desktop, main, online, unmirrored at 3840 × 2160 with 1920 × 1080 HiDPI UI at 60 Hz. |
+| Packaged Slabtop automatic mode on M2 MacBook Air with LG C2, macOS 27.2 | Verified without BetterDisplay automatic connection rules. C2 was the only desktop, main, online, unmirrored at 3840 × 2160 with 1920 × 1080 HiDPI UI at 60 Hz. |
 | Keyboard recovery | Focused app menu shortcut verified. Global delivery from the automated UI tool did not trigger recovery; physical keyboard testing remains pending. Use the app window or menu bar as a fallback. |
 | Automatic mode after physical cable reconnect on that Air and C2 | Owner confirmed that the desktop returned automatically. A fresh native report confirmed the C2 remained the only active desktop at 4K and 60 Hz. One reconnect tested. |
 | Automatic mode after sleep and wake | Pending. |
@@ -45,7 +45,7 @@ Policy unit tests cover decisions about safe targets. They do not prove cable re
 
 ## Hardware and startup limits
 
-HalfBook runs after login. It cannot run before FileVault unlock, during startup selection, or in macOS Recovery. FileVault remains enabled. Apple explains that FileVault protects access with the user's login password in its [FileVault guide](https://support.apple.com/guide/mac-help/protect-data-on-your-mac-with-filevault-mh11785/mac).
+Slabtop runs after login. It cannot run before FileVault unlock, during startup selection, or in macOS Recovery. FileVault remains enabled. Apple explains that FileVault protects access with the user's login password in its [FileVault guide](https://support.apple.com/guide/mac-help/protect-data-on-your-mac-with-filevault-mh11785/mac).
 
 The app changes the desktop arrangement. It does not repair panel hardware, emulate lid sensors, prevent sleep, or change power management. A physically removed display assembly can affect the camera, microphones, antennas, or sensors, depending on the model and removal. Those effects need hardware assessment.
 
@@ -53,7 +53,7 @@ For an intact MacBook used with its lid closed, Apple calls for power and an ext
 
 Apple specifies one external display up to 6K at 60 Hz for the [M2 MacBook Air](https://support.apple.com/en-us/111867). Disabling the built-in display does not establish support for another external display or a higher output mode.
 
-The whole connection determines resolution and refresh rate. Check the Mac model, port, dock, adapter, cable, and TV. The recorded C2 result was 4K at 60 Hz. HalfBook does not promise 4K at 120 Hz, change adapter firmware, or override a display's identity.
+The whole connection determines resolution and refresh rate. Check the Mac model, port, dock, adapter, cable, and TV. The recorded C2 result was 4K at 60 Hz. Slabtop does not promise 4K at 120 Hz, change adapter firmware, or override a display's identity.
 
 ## Signing
 

@@ -1,12 +1,12 @@
 # Security
 
-HalfBook runs in the logged-in user's session. It changes the desktop arrangement through macOS display services. It does not request administrator access, install a privileged helper, change FileVault, or enable automatic login.
+Slabtop runs in the logged-in user's session. It changes the desktop arrangement through macOS display services. It does not request administrator access, install a privileged helper, change FileVault, or enable automatic login.
 
-The current release uses private display APIs and ad hoc signing. It has no Developer ID signature or Apple notarization. Download only from the [project's releases](https://github.com/alxcrt/halfbook/releases). Use Apple's per-app approval procedure when appropriate. Do not disable Gatekeeper globally.
+The current release uses private display APIs and ad hoc signing. It has no Developer ID signature or Apple notarization. Download only from the [project's releases](https://github.com/alxcrt/slabtop/releases). Use Apple's per-app approval procedure when appropriate. Do not disable Gatekeeper globally.
 
 ## Report a vulnerability
 
-Use [GitHub private vulnerability reporting](https://github.com/alxcrt/halfbook/security/advisories/new) if the repository offers it. If that option is unavailable, open an issue that asks for a private reporting channel without including exploit details or private data.
+Use [GitHub private vulnerability reporting](https://github.com/alxcrt/slabtop/security/advisories/new) if the repository offers it. If that option is unavailable, open an issue that asks for a private reporting channel without including exploit details or private data.
 
 Describe the affected version, required access, reproduction steps, and impact. Do not submit credentials, full preference exports, private addresses, or device serial numbers.
 

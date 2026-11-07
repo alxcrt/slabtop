@@ -1,4 +1,4 @@
-# Contribute to HalfBook
+# Contribute to Slabtop
 
 Start with the [compatibility record](docs/COMPATIBILITY.md). Display-control changes need hardware evidence because the private APIs can return success without producing a usable desktop.
 
@@ -13,13 +13,13 @@ swift test
 ./scripts/build-app.sh
 ```
 
-The build script creates `dist/HalfBook.app`, versioned ARM64 DMG and ZIP downloads, and `dist/SHA256SUMS.txt`. It defaults to ad hoc signing. A local Apple Development identity does not provide a notarized public release.
+The build script creates `dist/Slabtop.app`, versioned ARM64 DMG and ZIP downloads, and `dist/SHA256SUMS.txt`. It defaults to ad hoc signing. A local Apple Development identity does not provide a notarized public release.
 
 Use `VERSION` to set the bundle and archive version. Distribution with a Developer ID identity also requires a separate, verified notarization process. The current build script does not perform notarization.
 
 ## Report a display problem
 
-Open a [GitHub issue](https://github.com/alxcrt/halfbook/issues) with the following information.
+Open a [GitHub issue](https://github.com/alxcrt/slabtop/issues) with the following information.
 
 - Mac model and chip, without a serial number.
 - macOS version.
@@ -48,6 +48,8 @@ Contributions use the repository's [MIT license](LICENSE).
 
 ## Read-only diagnostics
 
-For a development build, run `swift run HeadlessMac --diagnostics`. For an installed app, run `/Applications/HalfBook.app/Contents/MacOS/HeadlessMac --diagnostics`. This reports capabilities, automatic mode, native login status, and display state without changing settings. Device identity strings and serial numbers are omitted.
+For a development build, run `swift run HeadlessMac --diagnostics`. For an installed app, run `/Applications/Slabtop.app/Contents/MacOS/HeadlessMac --diagnostics`. This reports capabilities, automatic mode, native login status, and display state without changing settings. Device identity strings and serial numbers are omitted.
 
 Display-control failures are also recorded in the native macOS unified log under subsystem `com.alxcrt.HalfBook`, category `Displays`.
+
+Slabtop was previously named HalfBook. Its bundle identifier and preferences domain remain `com.alxcrt.HalfBook` so updates retain settings and native login registration. The existing Application Support lock path is retained to serialize updates with an older running copy.

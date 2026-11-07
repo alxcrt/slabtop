@@ -5,7 +5,7 @@ import OSLog
 
 private let defaults = UserDefaults.standard
 private let displayLog = Logger(subsystem: "com.alxcrt.HalfBook", category: "Displays")
-private let projectURL = URL(string: "https://github.com/alxcrt/halfbook")!
+private let projectURL = URL(string: "https://github.com/alxcrt/slabtop")!
 
 final class AppController: NSObject, NSApplicationDelegate {
     private var engine: DisplayEngine?
@@ -53,16 +53,16 @@ final class AppController: NSObject, NSApplicationDelegate {
 
     private func buildMenu() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        statusItem.button?.image = NSImage(systemSymbolName: "display", accessibilityDescription: "HalfBook")
+        statusItem.button?.image = NSImage(systemSymbolName: "display", accessibilityDescription: "Slabtop")
         let menu = NSMenu()
-        menu.addItem(withTitle: "HalfBook…", action: #selector(showWindow), keyEquivalent: "")
+        menu.addItem(withTitle: "Slabtop…", action: #selector(showWindow), keyEquivalent: "")
         menu.addItem(.separator())
         let useExternal = menu.addItem(withTitle: "Use external screens", action: #selector(applyNow), keyEquivalent: "e")
         useExternal.keyEquivalentModifierMask = [.control, .option, .command]
         let restore = menu.addItem(withTitle: "Restore built-in screen", action: #selector(restoreNow), keyEquivalent: "r")
         restore.keyEquivalentModifierMask = [.control, .option, .command]
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit HalfBook", action: #selector(quit), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit Slabtop", action: #selector(quit), keyEquivalent: "q")
         for item in menu.items { item.target = self }
         statusItem.menu = menu
         let mainMenu = NSMenu()
@@ -74,7 +74,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         restoreItem.keyEquivalentModifierMask = [.control, .option, .command]
         restoreItem.target = self
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Quit HalfBook", action: #selector(quit), keyEquivalent: "q").target = self
+        appMenu.addItem(withTitle: "Quit Slabtop", action: #selector(quit), keyEquivalent: "q").target = self
         let item = NSMenuItem(); item.submenu = appMenu; mainMenu.addItem(item)
         NSApp.mainMenu = mainMenu
     }
@@ -89,7 +89,7 @@ final class AppController: NSObject, NSApplicationDelegate {
 
     private func buildWindow() {
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 500), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        window.title = "HalfBook"
+        window.title = "Slabtop"
         window.minSize = NSSize(width: 460, height: 500)
         window.isReleasedWhenClosed = false
         window.center()
@@ -125,10 +125,10 @@ final class AppController: NSObject, NSApplicationDelegate {
 
         let icon = NSImageView(image: NSApp.applicationIconImage)
         icon.imageScaling = .scaleProportionallyUpOrDown
-        icon.setAccessibilityLabel("HalfBook")
+        icon.setAccessibilityLabel("Slabtop")
         icon.widthAnchor.constraint(equalToConstant: 40).isActive = true
         icon.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        let title = text("HalfBook", size: 23)
+        let title = text("Slabtop", size: 23)
         title.font = .systemFont(ofSize: 23, weight: .semibold)
         let identity = NSStackView(views: [title, text("For your screenless Mac.", size: 12, secondary: true)])
         identity.orientation = .vertical
@@ -185,11 +185,11 @@ final class AppController: NSObject, NSApplicationDelegate {
         login.target = self
         login.action = #selector(toggleLogin)
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
-        login.setAccessibilityLabel("Open HalfBook at login")
+        login.setAccessibilityLabel("Open Slabtop at login")
         let preferences = NSStackView(views: [
             preferenceRow("Use automatically", detail: "When a wired screen connects or your Mac wakes.", control: automatic),
             separator(),
-            preferenceRow("Open at login", detail: "Keep HalfBook ready in the menu bar.", control: login)
+            preferenceRow("Open at login", detail: "Keep Slabtop ready in the menu bar.", control: login)
         ])
         preferences.orientation = .vertical
         preferences.alignment = .leading
@@ -220,7 +220,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         footer.spacing = 8
         root.addArrangedSubview(footer)
         root.setCustomSpacing(8, after: footer)
-        root.addArrangedSubview(text("HalfBook stays in the menu bar when this window closes.", size: 11, secondary: true))
+        root.addArrangedSubview(text("Slabtop stays in the menu bar when this window closes.", size: 11, secondary: true))
         for view in root.arrangedSubviews {
             view.widthAnchor.constraint(equalTo: root.widthAnchor).isActive = true
         }
@@ -313,7 +313,7 @@ final class AppController: NSObject, NSApplicationDelegate {
     @objc private func toggleLogin() {
         guard Bundle.main.bundleURL.pathExtension == "app" else {
             login.state = .off
-            lastMessage = "Move HalfBook to Applications before enabling Open at login."
+            lastMessage = "Move Slabtop to Applications before enabling Open at login."
             refresh()
             return
         }
@@ -327,7 +327,7 @@ final class AppController: NSObject, NSApplicationDelegate {
                 try SMAppService.mainApp.unregister()
             }
             if SMAppService.mainApp.status == .requiresApproval {
-                lastMessage = "Allow HalfBook in System Settings, General, Login Items."
+                lastMessage = "Allow Slabtop in System Settings, General, Login Items."
             }
         } catch {
             lastMessage = "Could not change Open at login. \(error.localizedDescription)"
@@ -351,10 +351,10 @@ final class AppController: NSObject, NSApplicationDelegate {
     private func refresh(clearMessagesOnChange: Bool = true) {
         let loginStatus = SMAppService.mainApp.status
         login.state = loginStatus == .enabled || loginStatus == .requiresApproval ? .on : .off
-        login.toolTip = loginStatus == .requiresApproval ? "Approval needed in System Settings, General, Login Items." : "Open HalfBook at login"
+        login.toolTip = loginStatus == .requiresApproval ? "Approval needed in System Settings, General, Login Items." : "Open Slabtop at login"
         displayList.arrangedSubviews.forEach { displayList.removeArrangedSubview($0); $0.removeFromSuperview() }
         guard let engine else {
-            status.stringValue = lastMessage ?? "Could not check your displays. Quit HalfBook and open it again."
+            status.stringValue = lastMessage ?? "Could not check your displays. Quit Slabtop and open it again."
             applyButton.isEnabled = false
             automatic.isEnabled = false
             return
@@ -386,7 +386,7 @@ final class AppController: NSObject, NSApplicationDelegate {
             default: applyButton.isEnabled = false
             }
             if !engine.supportsChanges {
-                status.stringValue = "HalfBook cannot control displays on this Mac. You can still use Display settings."
+                status.stringValue = "Slabtop cannot control displays on this Mac. You can still use Display settings."
                 automatic.state = .off
                 return
             }
