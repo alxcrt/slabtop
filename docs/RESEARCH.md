@@ -8,7 +8,7 @@ On an M2 MacBook Air running macOS 27.2, an LG C2 remained at the macOS TV choos
 
 A session display transaction that called `SLSConfigureDisplayIndependentOutput(config, externalID, 0)` and then enabled the external output activated the C2. BetterDisplay subsequently disconnected the built-in display. A fresh macOS display report showed the C2 as the main, online, unmirrored display at 3840 × 2160 and 60 Hz. The owner confirmed the visible desktop.
 
-That result supports the admission sequence. It does not establish a completed test of HalfBook, every TV, or reconnect after a new login. The [compatibility record](COMPATIBILITY.md#recorded-evidence) separates those checks.
+That experiment established the admission sequence. The packaged HalfBook app subsequently passed automatic external-only setup and an owner-confirmed physical C2 reconnect on the same Air, with BetterDisplay automatic connection rules off. It does not establish every TV or reconnect after a new login. The [compatibility record](COMPATIBILITY.md#recorded-evidence) separates those checks.
 
 ## The implementation
 

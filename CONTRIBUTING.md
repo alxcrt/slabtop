@@ -45,3 +45,9 @@ Record the macOS version and those results for each hardware test. Keep per-disp
 Keep target selection in `Policy.swift`, display operations in `DisplayEngine.swift`, and app controls in `App.swift`. Preserve activation and verification of all identified wired screens before disconnecting built-in output. Keep the external main screen, relative display positions, and selected display modes intact. Add behavior tests for new policy decisions.
 
 Contributions use the repository's [MIT license](LICENSE).
+
+## Read-only diagnostics
+
+For a development build, run `swift run HeadlessMac --diagnostics`. For an installed app, run `/Applications/HalfBook.app/Contents/MacOS/HeadlessMac --diagnostics`. This reports capabilities, automatic mode, native login status, and display state without changing settings. Device identity strings and serial numbers are omitted.
+
+Display-control failures are also recorded in the native macOS unified log under subsystem `com.alxcrt.HalfBook`, category `Displays`.
