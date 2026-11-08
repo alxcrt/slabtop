@@ -23,7 +23,7 @@ A wired display must match a physical display identity reported by the Apple Sil
 
 ## Recorded evidence
 
-Hardware evidence was recorded on 7 November 2026 under the previous name, HalfBook 0.1.0. Slabtop 0.1.1 changes the name and artwork; the display engine is unchanged. Pending means there is no completed result recorded here.
+Hardware evidence was recorded on 7 November 2026 under the previous name, HalfBook 0.1.0, and on 8 November 2026 with Slabtop 0.1.1. Slabtop 0.1.1 changes the name and artwork. The display engine is unchanged. Pending means there is no completed result recorded here.
 
 | Check | Result |
 | --- | --- |
@@ -32,14 +32,14 @@ Hardware evidence was recorded on 7 November 2026 under the previous name, HalfB
 | Packaged Slabtop with two wired external displays on M2 Max, macOS 27.2 | Verified. Portrait 1440 × 2560 and ultrawide 3440 × 1440 stayed active at 60 Hz. Exact display modes and relative positions were preserved. Built-in output was off. The app recovery button restored built-in output; the original arrangement was restored and checked. |
 | Policy, display engine, and layout unit tests | 47 tests passed with `swift test`. These tests use simulated display state. |
 | Packaged Slabtop automatic mode on M2 MacBook Air with LG C2, macOS 27.2 | Verified without BetterDisplay automatic connection rules. C2 was the only desktop, main, online, unmirrored at 3840 × 2160 with 1920 × 1080 HiDPI UI at 60 Hz. |
-| Keyboard recovery | Focused app menu shortcut verified. Global delivery from the automated UI tool did not trigger recovery; physical keyboard testing remains pending. Use the app window or menu bar as a fallback. |
+| Keyboard recovery on the M2 MacBook Air with a 3440 × 1440 165 Hz ultrawide | Verified with the Air's physical keyboard. Control + Option + Command + R mirrored the built-in display and paused automatic mode. Control + Option + Command + E left the ultrawide as the only display. The ultrawide stayed at 165 Hz. An automated UI tool could not deliver the global shortcut, so test with a real keyboard. |
 | Automatic mode after physical cable reconnect on that Air and C2 | Owner confirmed that the desktop returned automatically. A fresh native report confirmed the C2 remained the only active desktop at 4K and 60 Hz. One reconnect tested. |
-| Automatic mode after sleep and wake | Pending. |
+| Automatic mode after sleep and wake on that Air and ultrawide | Verified once. The desktop returned on the ultrawide with the built-in display still off. macOS took about 15 seconds to wake the display. |
 | Native login registration | Registration enabled on the Air. Switch registration and removal verified on the M2 Max. |
-| Start at login after a fresh login or restart | Pending. |
+| Start at login after a restart on that Air | Verified once. After the FileVault unlock, Slabtop started from its login item in automatic mode. It made a newly attached Dell S2721QS the only display at 1920 × 1080 HiDPI and 60 Hz. |
 | First launch of the downloaded, quarantined release on a separate Mac | Pending. |
 | Other Apple Silicon generations and display combinations | Pending. |
-| GitHub-hosted CI | Did not execute. This release was tested and packaged locally. |
+| Build and unit tests | Run locally with `swift test` and `scripts/build-app.sh`. The project has no hosted CI. |
 
 Policy unit tests cover decisions about safe targets. They do not prove cable reconnect, wake, login, or visible picture behavior. See [Contributing](../CONTRIBUTING.md) for a hardware test report checklist.
 
