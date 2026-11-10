@@ -11,6 +11,7 @@ struct DisplayFailure: LocalizedError {
 enum DisplayChange: Equatable {
     case admit(UInt32)
     case externalOnly(UInt32, [UInt32])
+    case builtinOff([UInt32])
     case restore([UInt32])
 }
 
@@ -46,13 +47,15 @@ final class DisplayEngine {
 
     func snapshot() throws -> [Display] { try system.snapshot() }
 
-    func apply(cancelled: () -> Bool = { false }) throws -> String {
+    func apply(allowVirtual: Bool = false, cancelled: () -> Bool = { false }) throws -> String {
         try locked {
+            // With virtual screens allowed, their arrival or removal is not a connection change.
+            let tracked: ([Display]) -> [Display] = { allowVirtual ? Policy.physical($0) : $0 }
             let initial = try snapshot()
             let builtinIDs = initial.filter(\.builtin).map(\.id)
             let external = initial.filter { !$0.builtin && $0.wired }.sorted { $0.id < $1.id }
             let mainID = external.first(where: \.main)?.id ?? external.first?.id
-            switch Policy.decide(initial) {
+            switch Policy.decide(initial, allowVirtual: allowVirtual) {
             case .wait(let reason): throw DisplayFailure(message: reason)
             case .ready: return "External-only desktop is ready."
             default: break
@@ -63,9 +66,9 @@ final class DisplayEngine {
             do {
                 while true {
                     let current = try snapshot()
-                    try checkConnections(initial, current)
+                    try checkConnections(tracked(initial), tracked(current))
                     try checkCancellation(cancelled)
-                    switch Policy.decide(current, preferredMainID: mainID) {
+                    switch Policy.decide(current, preferredMainID: mainID, allowVirtual: allowVirtual) {
                     case .wait(let reason): throw DisplayFailure(message: reason)
                     case .ready: return "External-only desktop is ready."
                     case .admit(let target):
@@ -75,18 +78,26 @@ final class DisplayEngine {
                         try system.change(.admit(target))
                         _ = try waitFor("An external desktop did not become active. No built-in output was disconnected.") { observed in
                             try self.checkCancellation(cancelled)
-                            try self.checkConnections(initial, observed)
+                            try self.checkConnections(tracked(initial), tracked(observed))
                             return observed.contains { $0.id == target && $0.active && $0.online && !$0.mirrored }
                         }
                     case .externalOnly(let target, let internalIDs):
                         attemptedDisable = !internalIDs.isEmpty
                         try system.change(.externalOnly(target, internalIDs))
                         let after = try waitFor("macOS did not verify an external-only desktop.") { observed in
-                            try self.checkConnections(initial.filter { !$0.builtin }, observed.filter { !$0.builtin })
-                            return Policy.decide(observed, preferredMainID: mainID) == .ready
+                            try self.checkConnections(tracked(initial).filter { !$0.builtin }, tracked(observed).filter { !$0.builtin })
+                            return Policy.decide(observed, preferredMainID: mainID, allowVirtual: allowVirtual) == .ready
                         }
                         let outputs = after.filter { !$0.builtin && $0.wired }
                         return outputs.count == 1 ? "\(outputs[0].name) is the only desktop." : "\(outputs.count) wired displays are active. Built-in display is off."
+                    case .builtinOff(let internalIDs):
+                        attemptedDisable = true
+                        try system.change(.builtinOff(internalIDs))
+                        _ = try waitFor("macOS did not verify the built-in display is off.") { observed in
+                            try self.checkConnections(tracked(initial).filter { !$0.builtin }, tracked(observed).filter { !$0.builtin })
+                            return Policy.decide(observed, preferredMainID: mainID, allowVirtual: allowVirtual) == .ready
+                        }
+                        return "Built-in display is off. Virtual screens are left as they are."
                     }
                 }
             } catch {
@@ -268,7 +279,7 @@ private final class NativeDisplaySystem: DisplaySystem {
             }
             let current = try snapshot().filter { !$0.builtin }
             guard Policy.sameConnections(external, current.filter { $0.wired }),
-                  current.allSatisfy({ $0.wired ? $0.active && $0.online && !$0.mirrored : !$0.active && !$0.online }) else {
+                  current.filter(\.wired).allSatisfy({ $0.active && $0.online && !$0.mirrored }) else {
                 throw DisplayFailure(message: "External connections changed before arranging the desktop.")
             }
             var changedModes: [UInt32: CGDisplayMode] = [:]
@@ -295,6 +306,10 @@ private final class NativeDisplaySystem: DisplaySystem {
             guard translated.allSatisfy({ CGDisplayBounds($0.key).origin == $0.value }),
                   modes.allSatisfy({ sameMode(CGDisplayCopyDisplayMode($0.key), $0.value) }) else {
                 throw DisplayFailure(message: "macOS did not preserve the external screen modes and arrangement.")
+            }
+        case .builtinOff(let internalIDs):
+            try transaction { config in
+                for id in internalIDs { try check(enable(config, id, false), "Disconnect built-in display") }
             }
         case .restore(let internalIDs):
             try transaction { config in

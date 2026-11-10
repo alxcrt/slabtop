@@ -50,4 +50,23 @@ final class PolicyTests: XCTestCase {
     func testMirroredExternalNeedsAdmission() {
         XCTAssertEqual(Policy.decide([display(1, builtin: true), display(7, mirrored: true)]), .admit(7))
     }
+
+    func testVirtualScreensStillPauseByDefault() {
+        if case .wait = Policy.decide([display(1, builtin: true), display(2), display(10, wired: false, main: true)]) {} else { XCTFail("Must wait") }
+    }
+    func testAllowedVirtualScreensOnlyTurnOffTheBuiltInDisplay() {
+        XCTAssertEqual(Policy.decide([display(1, builtin: true), display(2), display(10, wired: false, main: true)], allowVirtual: true), .builtinOff([1]))
+    }
+    func testAllowedVirtualScreensAreReadyOnceBuiltInIsOff() {
+        XCTAssertEqual(Policy.decide([display(1, builtin: true, active: false, online: false), display(2), display(10, wired: false, main: true)], allowVirtual: true), .ready)
+    }
+    func testAllowedVirtualScreensLeaveMirroringAlone() {
+        if case .wait = Policy.decide([display(1, builtin: true), display(2, mirrored: true), display(10, wired: false)], allowVirtual: true) {} else { XCTFail("Must wait") }
+    }
+    func testAllowedVirtualScreensStillAdmitAnInactiveWiredScreen() {
+        XCTAssertEqual(Policy.decide([display(1, builtin: true, main: true), display(2, active: false, online: false), display(10, wired: false)], allowVirtual: true), .admit(2))
+    }
+    func testVirtualScreenAloneNeverTurnsOffTheBuiltInDisplay() {
+        if case .wait = Policy.decide([display(1, builtin: true), display(10, wired: false, main: true)], allowVirtual: true) {} else { XCTFail("Must wait") }
+    }
 }

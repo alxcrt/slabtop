@@ -46,9 +46,20 @@ If BetterDisplay has an automatic rule that disconnects or reconnects the built-
 
 Turning off **Use automatically** stops future automatic changes. It does not re-enable the built-in display.
 
+## Use virtual screens such as VITURE SpaceWalker
+
+Some apps add virtual screens. VITURE SpaceWalker does this to show several screens in its glasses. By default Slabtop pauses while such a screen is active, so the built-in display can stay on after a restart or wake.
+
+1. Turn on **Allow virtual screens**.
+2. Keep **Use automatically** on.
+3. Connect the glasses or other wired screen directly to the Mac.
+4. Open the virtual-screen app.
+
+Slabtop then turns the built-in display off whenever a wired screen is active. It leaves the virtual screens, their layout and the main screen to the other app. If a wired screen is mirroring, Slabtop does nothing until mirroring stops.
+
 ## Pause and restore the built-in display
 
-1. Click **Restore built-in screen**, or press **Control + Option + Command + R**.
+1. Click **Restore built-in screen**, or press **Control + Option + Command + B**.
 2. Read the result in the app window.
 
 This action pauses automatic mode before requesting the software restore. A removed screen, damaged panel, or missing display identity cannot become usable through software.

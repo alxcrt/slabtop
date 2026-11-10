@@ -32,6 +32,7 @@ enum Decision: Equatable {
     case wait(String)
     case admit(UInt32)
     case externalOnly(UInt32, [UInt32])
+    case builtinOff([UInt32])
     case ready
 }
 
@@ -42,15 +43,28 @@ struct Policy {
         }
     }
 
-    static func decide(_ displays: [Display], preferredMainID: UInt32? = nil) -> Decision {
+    /// Wired and built-in displays only. Virtual screens come and go on their own and are not Slabtop's to track.
+    static func physical(_ displays: [Display]) -> [Display] {
+        displays.filter { $0.builtin || $0.wired }
+    }
+
+    static func decide(_ displays: [Display], preferredMainID: UInt32? = nil, allowVirtual: Bool = false) -> Decision {
         let external = displays.filter { !$0.builtin && $0.wired }.sorted { $0.id < $1.id }
         guard !external.isEmpty else { return .wait("Connect a wired monitor or TV.") }
-        guard !displays.contains(where: { !$0.builtin && !$0.wired && ($0.active || $0.online) }) else {
-            return .wait("Another display is in use. Disconnect it before applying external-only mode.")
+        let internalIDs = displays.filter { $0.builtin && ($0.active || $0.online) }.map(\.id).sorted()
+        if displays.contains(where: { !$0.builtin && !$0.wired && ($0.active || $0.online) }) {
+            guard allowVirtual else {
+                return .wait("Another display is in use. Disconnect it before applying external-only mode.")
+            }
+            // Another app owns these screens and their layout. Only turn the built-in display off, and leave mirroring alone.
+            guard !external.contains(where: \.mirrored) else {
+                return .wait("A wired screen is mirroring while virtual screens are in use. Slabtop leaves it alone.")
+            }
+            if let pending = external.first(where: { !$0.active || !$0.online }) { return .admit(pending.id) }
+            return internalIDs.isEmpty ? .ready : .builtinOff(internalIDs)
         }
         if let pending = external.first(where: { !$0.active || !$0.online || $0.mirrored }) { return .admit(pending.id) }
         let main = external.first(where: { $0.id == preferredMainID }) ?? external.first(where: \.main) ?? external[0]
-        let internalIDs = displays.filter { $0.builtin && ($0.active || $0.online) }.map(\.id).sorted()
         if !internalIDs.isEmpty || !main.main || external.filter(\.main).count != 1 { return .externalOnly(main.id, internalIDs) }
         return .ready
     }

@@ -35,13 +35,17 @@ These shortcuts work while Slabtop runs, unless another app has reserved them.
 | Shortcut | Action |
 | --- | --- |
 | Control + Option + Command + E | Use the external screens. |
-| Control + Option + Command + R | Pause automatic mode and re-enable the built-in display in software. |
+| Control + Option + Command + B | Pause automatic mode and re-enable the built-in display in software. |
+
+Slabtop 0.1.1 used Control + Option + Command + R. Version 0.1.2 moved it to B because VITURE SpaceWalker uses R to recenter its screens.
 
 The same actions are in the app window and menu bar. Re-enabling a display cannot repair a damaged panel or restore a physically removed screen.
 
 ## Scope
 
 Slabtop activates all identifiable wired external displays before disconnecting the built-in display. It keeps an existing external main screen and preserves the relative arrangement of the external screens. It pauses if an active or online unknown, virtual, or wireless output prevents a safe change.
+
+Apps such as VITURE SpaceWalker add virtual screens and manage their own layout. Turn on **Allow virtual screens** to keep the built-in display off while they run. Slabtop then only turns the built-in display off. It leaves the virtual screens, the main screen and any mirroring alone. A wired screen must still be active.
 
 Slabtop does not change display modes, power settings, FileVault, or automatic login. The Mac model and connection still determine how many screens and which modes work.
 

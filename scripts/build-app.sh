@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-version="${VERSION:-0.1.1}"
+version="${VERSION:-0.1.2}"
 identity="${SIGNING_IDENTITY:--}"
 /usr/bin/swift build -c release --arch arm64
 binary_dir="$(/usr/bin/swift build -c release --arch arm64 --show-bin-path)"

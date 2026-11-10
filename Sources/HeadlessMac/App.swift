@@ -15,6 +15,8 @@ final class AppController: NSObject, NSApplicationDelegate {
     private let displayList = NSStackView()
     private let automatic = NSSwitch()
     private let login = NSSwitch()
+    private let virtualScreens = NSSwitch()
+    private var allowVirtual: Bool { defaults.bool(forKey: "allowVirtualScreens") }
     private let applyButton = NSButton(title: "Use external screens", target: nil, action: nil)
     private enum Operation { case useExternal, restore }
     private var operation: Operation?
@@ -59,7 +61,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
         let useExternal = menu.addItem(withTitle: "Use external screens", action: #selector(applyNow), keyEquivalent: "e")
         useExternal.keyEquivalentModifierMask = [.control, .option, .command]
-        let restore = menu.addItem(withTitle: "Restore built-in screen", action: #selector(restoreNow), keyEquivalent: "r")
+        let restore = menu.addItem(withTitle: "Restore built-in screen", action: #selector(restoreNow), keyEquivalent: "b")
         restore.keyEquivalentModifierMask = [.control, .option, .command]
         menu.addItem(.separator())
         menu.addItem(withTitle: "Quit Slabtop", action: #selector(quit), keyEquivalent: "q")
@@ -70,7 +72,7 @@ final class AppController: NSObject, NSApplicationDelegate {
         let useExternalItem = appMenu.addItem(withTitle: "Use external screens", action: #selector(applyNow), keyEquivalent: "e")
         useExternalItem.keyEquivalentModifierMask = [.control, .option, .command]
         useExternalItem.target = self
-        let restoreItem = appMenu.addItem(withTitle: "Restore built-in screen", action: #selector(restoreNow), keyEquivalent: "r")
+        let restoreItem = appMenu.addItem(withTitle: "Restore built-in screen", action: #selector(restoreNow), keyEquivalent: "b")
         restoreItem.keyEquivalentModifierMask = [.control, .option, .command]
         restoreItem.target = self
         appMenu.addItem(.separator())
@@ -88,9 +90,9 @@ final class AppController: NSObject, NSApplicationDelegate {
     }
 
     private func buildWindow() {
-        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 500), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 560), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = "Slabtop"
-        window.minSize = NSSize(width: 460, height: 500)
+        window.minSize = NSSize(width: 460, height: 560)
         window.isReleasedWhenClosed = false
         window.center()
 
@@ -182,12 +184,18 @@ final class AppController: NSObject, NSApplicationDelegate {
         automatic.action = #selector(toggleAutomatic)
         automatic.state = defaults.bool(forKey: "automatic") ? .on : .off
         automatic.setAccessibilityLabel("Use external screens automatically")
+        virtualScreens.target = self
+        virtualScreens.action = #selector(toggleVirtualScreens)
+        virtualScreens.state = allowVirtual ? .on : .off
+        virtualScreens.setAccessibilityLabel("Keep the built-in screen off with virtual screens")
         login.target = self
         login.action = #selector(toggleLogin)
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         login.setAccessibilityLabel("Open Slabtop at login")
         let preferences = NSStackView(views: [
             preferenceRow("Use automatically", detail: "When a wired screen connects or your Mac wakes.", control: automatic),
+            separator(),
+            preferenceRow("Allow virtual screens", detail: "Keep the built-in screen off while apps such as VITURE SpaceWalker add screens.", control: virtualScreens),
             separator(),
             preferenceRow("Open at login", detail: "Keep Slabtop ready in the menu bar.", control: login)
         ])
@@ -201,8 +209,8 @@ final class AppController: NSObject, NSApplicationDelegate {
 
         let restore = NSButton(title: "Restore built-in screen", target: self, action: #selector(restoreNow))
         restore.bezelStyle = .rounded
-        restore.toolTip = "Pause automatic use and restore the built-in screen (⌃⌥⌘R)"
-        let recovery = NSStackView(views: [restore, text("⌃⌥⌘R", size: 11, secondary: true)])
+        restore.toolTip = "Pause automatic use and restore the built-in screen (⌃⌥⌘B)"
+        let recovery = NSStackView(views: [restore, text("⌃⌥⌘B", size: 11, secondary: true)])
         recovery.spacing = 8
         root.addArrangedSubview(recovery)
         root.setCustomSpacing(12, after: preferences)
@@ -310,6 +318,10 @@ final class AppController: NSObject, NSApplicationDelegate {
         if automatic.state == .off { cancellation.cancel() }
         failures = 0; lastAttempt = .distantPast; lastMessage = nil; tick()
     }
+    @objc private func toggleVirtualScreens() {
+        defaults.set(virtualScreens.state == .on, forKey: "allowVirtualScreens")
+        failures = 0; lastAttempt = .distantPast; lastMessage = nil; tick()
+    }
     @objc private func toggleLogin() {
         guard Bundle.main.bundleURL.pathExtension == "app" else {
             login.state = .off
@@ -342,8 +354,8 @@ final class AppController: NSObject, NSApplicationDelegate {
               let displays = try? engine.snapshot() else { return }
         let cooldown = min(60.0, 5.0 * pow(2, Double(failures)))
         guard Date().timeIntervalSince(lastAttempt) >= cooldown else { return }
-        switch Policy.decide(displays) {
-        case .admit, .externalOnly: perform(restore: false)
+        switch Policy.decide(displays, allowVirtual: allowVirtual) {
+        case .admit, .externalOnly, .builtinOff: perform(restore: false)
         default: break
         }
     }
@@ -380,9 +392,9 @@ final class AppController: NSObject, NSApplicationDelegate {
                 prompt.widthAnchor.constraint(equalTo: displayList.widthAnchor).isActive = true
             }
             automatic.isEnabled = engine.supportsChanges
-            let decision = Policy.decide(displays)
+            let decision = Policy.decide(displays, allowVirtual: allowVirtual)
             switch decision {
-            case .admit, .externalOnly: applyButton.isEnabled = engine.supportsChanges && !busy
+            case .admit, .externalOnly, .builtinOff: applyButton.isEnabled = engine.supportsChanges && !busy
             default: applyButton.isEnabled = false
             }
             if !engine.supportsChanges {
@@ -407,6 +419,7 @@ final class AppController: NSObject, NSApplicationDelegate {
             case .wait(let reason): status.stringValue = reason
             case .admit: status.stringValue = "Connected. Ready to move your desktop to this screen."
             case .externalOnly: status.stringValue = "Ready to use your external screens without the built-in display."
+            case .builtinOff: status.stringValue = "Ready to turn off the built-in display. Virtual screens stay as they are."
             }
         } catch {
             status.stringValue = "Could not check your displays. \(error.localizedDescription)"
@@ -427,10 +440,11 @@ final class AppController: NSObject, NSApplicationDelegate {
         }
         cancellation = Cancellation()
         let cancellation = self.cancellation
+        let allowVirtual = self.allowVirtual
         operation = restore ? .restore : .useExternal; lastAttempt = Date(); applyButton.isEnabled = false
         status.stringValue = restore ? "Restoring the built-in display…" : "Preparing your external desktop…"
         DispatchQueue.global(qos: .userInitiated).async {
-            let result: Result<String, Error> = Result { try restore ? engine.restore() : engine.apply(cancelled: { cancellation.isCancelled }) }
+            let result: Result<String, Error> = Result { try restore ? engine.restore() : engine.apply(allowVirtual: allowVirtual, cancelled: { cancellation.isCancelled }) }
             DispatchQueue.main.async {
                 self.operation = nil
                 if self.pendingRestore {
@@ -463,7 +477,7 @@ final class AppController: NSObject, NSApplicationDelegate {
             return noErr
         }, 1, &event, Unmanaged.passUnretained(self).toOpaque(), &eventHandler)
         guard result == noErr else { lastMessage = "Global shortcuts unavailable. Menu-bar controls still work."; return }
-        for (id, code) in [(UInt32(1), UInt32(kVK_ANSI_E)), (UInt32(2), UInt32(kVK_ANSI_R))] {
+        for (id, code) in [(UInt32(1), UInt32(kVK_ANSI_E)), (UInt32(2), UInt32(kVK_ANSI_B))] {
             var ref: EventHotKeyRef?
             let result = RegisterEventHotKey(code, UInt32(controlKey | optionKey | cmdKey), EventHotKeyID(signature: 0x484D4143, id: id), GetApplicationEventTarget(), 0, &ref)
             if result == noErr, let ref { hotKeys.append(ref) } else { lastMessage = "A recovery shortcut is already in use. Menu-bar controls still work." }

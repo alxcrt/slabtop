@@ -465,6 +465,73 @@ final class DisplayEngineTests: XCTestCase {
     }
 }
 
+extension DisplayEngineTests {
+    private func virtualScreen(main: Bool = false) -> Display {
+        Display(id: 10, name: "Other display", builtin: false, wired: false, active: true, online: true, mirrored: false, main: main, identity: "virtual")
+    }
+
+    func testAllowedVirtualScreenOnlyTurnsOffTheBuiltInDisplay() throws {
+        let (engine, system, _) = setup()
+        system.displays = [display(internalID, builtin: true), display(externalID, identity: "screen-A"), virtualScreen(main: true)]
+
+        _ = try engine.apply(allowVirtual: true)
+
+        XCTAssertEqual(system.changes, [.builtinOff([internalID])])
+        XCTAssertEqual(system.displays.filter(\.main).map(\.id), [10])
+        XCTAssertFalse(system.displays.first { $0.builtin }!.active)
+    }
+
+    func testVirtualScreenStillBlocksChangesWhenNotAllowed() {
+        let (engine, system, _) = setup()
+        system.displays.append(virtualScreen())
+
+        XCTAssertThrowsError(try engine.apply())
+
+        XCTAssertTrue(system.changes.isEmpty)
+        XCTAssertTrue(system.displays.first { $0.builtin }!.active)
+    }
+
+    func testVirtualScreenAppearingMidChangeKeepsBuiltInOffWhenAllowed() throws {
+        let (engine, system, _) = setup()
+        system.onChange = { change in
+            system.complete(change)
+            if case .externalOnly = change { system.displays.append(self.virtualScreen(main: true)) }
+        }
+
+        _ = try engine.apply(allowVirtual: true)
+
+        XCTAssertEqual(system.changes, [.externalOnly(externalID, [internalID])])
+        XCTAssertFalse(system.displays.first { $0.builtin }!.active)
+    }
+
+    func testVirtualScreenAppearingMidChangeRestoresBuiltInWhenNotAllowed() {
+        let (engine, system, _) = setup()
+        system.onChange = { change in
+            system.complete(change)
+            if case .externalOnly = change { system.displays.append(self.virtualScreen(main: true)) }
+        }
+
+        XCTAssertThrowsError(try engine.apply())
+
+        XCTAssertEqual(system.changes, [.externalOnly(externalID, [internalID]), .restore([internalID])])
+        XCTAssertTrue(system.displays.first { $0.builtin }!.active)
+    }
+
+    func testAllowedVirtualModeStillRestoresWhenTheWiredScreenDrops() {
+        let (engine, system, _) = setup()
+        system.displays = [display(internalID, builtin: true), display(externalID, identity: "screen-A"), virtualScreen(main: true)]
+        system.onChange = { change in
+            system.complete(change)
+            if case .builtinOff = change { system.displays.removeAll { $0.id == self.externalID } }
+        }
+
+        XCTAssertThrowsError(try engine.apply(allowVirtual: true))
+
+        XCTAssertEqual(system.changes, [.builtinOff([internalID]), .restore([internalID])])
+        XCTAssertTrue(system.displays.first { $0.builtin }!.active)
+    }
+}
+
 private final class TestClock {
     var time: TimeInterval = 0
     var onAdvance: (() -> Void)?
@@ -501,6 +568,8 @@ private final class TestDisplaySystem: DisplaySystem {
             case .externalOnly(let target, let internalIDs):
                 if internalIDs.contains(display.id) { active = false; online = false; main = false }
                 main = display.id == target
+            case .builtinOff(let internalIDs) where internalIDs.contains(display.id):
+                active = false; online = false; main = false
             case .restore(let internalIDs) where internalIDs.contains(display.id):
                 active = true; online = true
             default: break

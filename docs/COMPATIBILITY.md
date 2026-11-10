@@ -15,7 +15,7 @@ There is no chip-model or macOS-version allowlist. The app checks for the native
 | Identifiable wired monitors and TVs | Eligible for external-only mode when native display capabilities are available. |
 | One wired TV waiting at the desktop chooser | The app attempts desktop activation before disconnecting the built-in display. |
 | Multiple identifiable wired external displays | All stay active. Their relative positions stay intact. macOS enforces the Mac model's output limit. |
-| Active or online unknown, virtual, AirPlay, or other wireless output | Automatic changes pause. |
+| Active or online unknown, virtual, AirPlay, or other wireless output | Automatic changes pause by default. With **Allow virtual screens** on, Slabtop only turns the built-in display off while a wired screen is active. It does not move, mirror or unmirror the other screens. |
 | Ambiguous or missing physical display identity | No automatic target is selected. |
 | Intel Mac | Outside the target hardware scope. |
 
@@ -23,20 +23,21 @@ A wired display must match a physical display identity reported by the Apple Sil
 
 ## Recorded evidence
 
-Hardware evidence was recorded on 7 November 2026 under the previous name, HalfBook 0.1.0, and on 8 November 2026 with Slabtop 0.1.1. Slabtop 0.1.1 changes the name and artwork. The display engine is unchanged. Pending means there is no completed result recorded here.
+Hardware evidence was recorded on 7 November 2026 under the previous name, HalfBook 0.1.0, on 8 November 2026 with Slabtop 0.1.1, and on 10 November 2026 with Slabtop 0.1.2. Slabtop 0.1.1 changes the name and artwork. Slabtop 0.1.2 adds **Allow virtual screens** and moves the restore shortcut to B. Other display behaviour is unchanged. Pending means there is no completed result recorded here.
 
 | Check | Result |
 | --- | --- |
 | LG C2 stuck at the macOS TV chooser, M2 MacBook Air, macOS 27.2 | A direct native API experiment activated the TV. BetterDisplay then disconnected the built-in display. macOS reported an unmirrored 3840 × 2160 desktop at 60 Hz, and the owner confirmed the picture. This was not a full Slabtop app test. |
 | Packaged Slabtop manual apply and software restore on M2 Max MacBook Pro, macOS 27.2, with one wired display | Verified locally. The external desktop remained at 3440 × 1440 and 100 Hz through apply and restore. |
 | Packaged Slabtop with two wired external displays on M2 Max, macOS 27.2 | Verified. Portrait 1440 × 2560 and ultrawide 3440 × 1440 stayed active at 60 Hz. Exact display modes and relative positions were preserved. Built-in output was off. The app recovery button restored built-in output; the original arrangement was restored and checked. |
-| Policy, display engine, and layout unit tests | 47 tests passed with `swift test`. These tests use simulated display state. |
+| Policy, display engine, and layout unit tests | 58 tests passed with `swift test` for 0.1.2. These tests use simulated display state. |
 | Packaged Slabtop automatic mode on M2 MacBook Air with LG C2, macOS 27.2 | Verified without BetterDisplay automatic connection rules. C2 was the only desktop, main, online, unmirrored at 3840 × 2160 with 1920 × 1080 HiDPI UI at 60 Hz. |
-| Keyboard recovery on the M2 MacBook Air with a 3440 × 1440 165 Hz ultrawide | Verified with the Air's physical keyboard. Control + Option + Command + R mirrored the built-in display and paused automatic mode. Control + Option + Command + E left the ultrawide as the only display. The ultrawide stayed at 165 Hz. An automated UI tool could not deliver the global shortcut, so test with a real keyboard. |
+| Keyboard recovery on the M2 MacBook Air with a 3440 × 1440 165 Hz ultrawide | Verified with the Air's physical keyboard. Control + Option + Command + R mirrored the built-in display and paused automatic mode. Control + Option + Command + E left the ultrawide as the only display. The ultrawide stayed at 165 Hz. An automated UI tool could not deliver the global shortcut, so test with a real keyboard. Version 0.1.2 moved restore to Control + Option + Command + B. The new key is untested on a physical keyboard. |
 | Automatic mode after physical cable reconnect on that Air and C2 | Owner confirmed that the desktop returned automatically. A fresh native report confirmed the C2 remained the only active desktop at 4K and 60 Hz. One reconnect tested. |
 | Automatic mode after sleep and wake on that Air and ultrawide | Verified once. The desktop returned on the ultrawide with the built-in display still off. macOS took about 15 seconds to wake the display. |
 | Native login registration | Registration enabled on the Air. Switch registration and removal verified on the M2 Max. |
 | Start at login after a restart on that Air | Verified once. After the FileVault unlock, Slabtop started from its login item in automatic mode. It made a newly attached Dell S2721QS the only display at 1920 × 1080 HiDPI and 60 Hz. |
+| VITURE Luma Ultra glasses with SpaceWalker 1.8.7 on that Air, Slabtop 0.1.2 with **Allow virtual screens** on | Verified once on 10 November 2026. The glasses connected over USB-C and Slabtop made them the only display at 120 Hz. SpaceWalker then added its ultrawide virtual screen as main. Slabtop kept the built-in display off and left SpaceWalker's screen alone. Control + Option + Command + R recentered SpaceWalker and did not trigger Slabtop. Sleep, wake and restart with the glasses are untested. |
 | First launch of the downloaded, quarantined release on a separate Mac | Pending. |
 | Other Apple Silicon generations and display combinations | Pending. |
 | Build and unit tests | Run locally with `swift test` and `scripts/build-app.sh`. The project has no hosted CI. |
